@@ -93,12 +93,11 @@ int generate_gitignore(lua_State* L) {
     const char search_string[] = "# RNJ BEGIN\n";
     const char end_string[] = "# RNJ END\n";
 
-    
     int64_t search_pos = strstr(full_content, search_string) - full_content;
     int64_t end_pos = strstr(full_content, end_string) - full_content + sizeof(end_string) - 1;
 
     if (search_pos < 0) {
-        for (int64_t i = 0; i < strlen(full_content); i++) {
+        for (size_t i = 0; i < strlen(full_content); i++) {
             fputc(full_content[i], file);
         }
         end_pos = strlen(full_content);
