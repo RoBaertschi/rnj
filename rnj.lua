@@ -1,4 +1,4 @@
-var("cflags", "-O2 -Wall -Wextra -llua -lm")
+var("cflags", "-O2 -Wall -Wextra -llua -lm -g")
 
 rule("cc", {
 	command = "gcc $cflags $in -o $out -MD -MF $out.d",

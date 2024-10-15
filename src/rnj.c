@@ -1,5 +1,7 @@
+#include <assert.h>
 #include <stddef.h>
 #include <stdarg.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <lua.h>
 #include <lauxlib.h>
@@ -72,21 +74,39 @@ char* fall(FILE* file) {
     return buffer;
 }
 
+// Requires the size of search_term_size to be bigger than 0.
+int64_t find_string(const char* string, int64_t string_size, const char* search_term, int64_t search_term_size) {
+    int64_t pos = 0;
+    int64_t search_pos = 0;
+    assert(search_term_size > 0);
+    while (pos < string_size) {
+        if (string[pos] == search_term[search_pos]) {
+            search_pos += 1;
+            if (search_pos >= search_term_size) {
+                return pos - search_pos;
+            }
+        } else {
+            search_pos = 0;
+        }
+        pos++;
+    }
+
+    return -1;
+}
+
 int generate_gitignore(lua_State* L) {
     luaL_argcheck(L, lua_gettop(L) == 0, 1, "generate_gitignore should not get any arguments");
     lua_getglobal(L, "builds");
     luaL_checktype(L, 1, LUA_TTABLE);
 
     FILE* file = fopen(".gitignore", "r");
-    if (file == NULL) {
-        lua_pushstring(L, "could not open the .gitignore file");
-        lua_error(L);
-    }
 
-    char* full_content = fall(file);
+    bool full_content_allocated = file != NULL;
+    char* full_content = file != NULL ? fall(file) : "";
 
-    fclose(file);
-    file = fopen(".gitignore", "w");
+    if (file) fclose(file);
+    file = fopen(".gitignore", "w+");
+
     if (file == NULL) {
         lua_pushstring(L, "could not open the .gitignore file");
         lua_error(L);
@@ -95,84 +115,48 @@ int generate_gitignore(lua_State* L) {
     const char search_string[] = "# RNJ BEGIN\n";
     const char end_string[] = "# RNJ END\n";
 
-    bool found = false;
+    int64_t search_pos = find_string(full_content, strlen(full_content), search_string, sizeof(search_string) / sizeof(char));
+    int64_t end_pos = find_string(full_content, strlen(full_content), end_string, sizeof(end_string) / sizeof(char));
 
-    size_t pos = 0;
-    size_t content_size = strlen(full_content);
-    while (true) {
-        if (content_size <= pos) {
-            break;
-        }
-        if (full_content[pos] == search_string[0] && content_size - pos >= sizeof(search_string)) {
-            fputc(full_content[pos], file);
-            size_t pos_search_string = 1;
-            pos += 1;
-
-            while (search_string[pos_search_string] == full_content[pos] && pos_search_string < sizeof(search_string)) {
-                fputc(full_content[pos], file);
-                pos_search_string += 1;
-                pos += 1;
-            }
-            if (pos_search_string >= sizeof(search_string)) {
-                found = true;
-                break;
-            }
-        } else {
-            fputc(full_content[pos], file);
-            pos += 1;
-        }
+    for (int64_t i = 0; i < search_pos; i++) {
+        fputc(full_content[i], file);
     }
 
-
-    if (!found) {
+    if (search_pos < 0) {
         fwrite(search_string, sizeof(char), sizeof(search_string), file);
     }
 
+    // 2
     lua_pushnil(L);
+    // 2 3
     while (lua_next(L, 1)) {
-        lua_getfield(L, 1, "output");
+        // 4
+        lua_getfield(L, 3, "output");
+        // 5
         lua_pushstring(L, "\n");
+        // 4
         lua_concat(L, 2);
         size_t output_size = 0;
         const char* output = lua_tolstring(L, -1, &output_size);
-        lua_pop(L, 1);
+        lua_pop(L, 2);
         fwrite(output, sizeof(char), output_size, file);
     }
 
-    fprintf(file, "build.ninja\n.ninja_log\n.ninja_deps\n");
+    fprintf(file, "build.ninja\n.ninja_logs\n.ninja_deps\n");
 
-    if (!found) {
+    if (end_pos < 0) {
         fwrite(end_string, sizeof(char), sizeof(end_string), file);
     }
 
-    while (true) {
-        if (content_size <= pos) {
-            break;
-        }
-        if (full_content[pos] == end_string[0] && content_size - pos >= sizeof(end_string)) {
-            size_t pos_search_string = 1;
-            pos += 1;
-
-            while (end_string[pos_search_string] == full_content[pos] && pos_search_string < sizeof(end_string)) {
-                pos_search_string += 1;
-                pos += 1;
-            }
-            if (pos_search_string >= sizeof(end_string)) {
-                found = true;
-                break;
-            }
-        } else {
-            pos += 1;
+    if (end_pos > 0) {
+        for (size_t i = end_pos; i < strlen(full_content); i++) {
+            fputc(full_content[i], file);
         }
     }
 
-    if (!found) {
-        fprintf(file, "%s", end_string);
-    }
-
-    while (content_size <= pos) {
-        fputc(full_content[pos], file);
-        pos++;
+    fclose(file);
+    if (full_content_allocated) {
+        free(full_content);
     }
 
     return 0;
@@ -193,7 +177,6 @@ int main(int argc, char *argv[]) {
     lua_setglobal(L, "generate_gitignore");
 
     call_file(L, "src/rnj.lua");
-    call_file(L, "rnj.lua");
 
 
     lua_close(L);

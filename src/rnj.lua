@@ -65,7 +65,7 @@ builds = {}
 
 function build(output, rule, ...)
 	local arg = { ... }
-	table.insert(builds, { output = output, rule = rule, inputs = arg })
+	builds[#builds + 1] = { output = output, rule = rule, inputs = arg }
 end
 
 -- function generate_gitignore()
@@ -124,9 +124,9 @@ for rule, options in pairs(rules) do
 	end
 end
 
-for _, build in ipairs(builds) do
-	build_ninja = build_ninja .. "build " .. build.output .. ": " .. build.rule
-	for _, input in ipairs(build.inputs) do
+for _, b in ipairs(builds) do
+	build_ninja = build_ninja .. "build " .. b.output .. ": " .. b.rule
+	for _, input in ipairs(b.inputs) do
 		build_ninja = build_ninja .. " " .. input
 	end
 	build_ninja = build_ninja .. "\n"
