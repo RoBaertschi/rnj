@@ -1,0 +1,6 @@
+# RNJ BEGIN
+.ninja_log
+.ninja_deps
+build.ninja
+rnj
+# RNJ END
