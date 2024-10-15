@@ -9,16 +9,6 @@
 /*    RNJ_ARG_HELP,*/
 /*};*/
 
-bool cmp_strings(const char* a, const char* b) {
-    if (strlen(a) != strlen(b)) {
-        return false;
-    }
-
-    if (memcmp(a, b, strlen(a))) {
-        return true;
-    }
-    return false;
-}
 
 void NORETURN help_and_exit(int err) {
     printf("rnj.lua [args...]\n");

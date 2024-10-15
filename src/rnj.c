@@ -71,25 +71,6 @@ char* fall(FILE* file) {
     return buffer;
 }
 
-// Requires the size of search_term_size to be bigger than 0.
-int64_t find_string(const char* string, int64_t string_size, const char* search_term, int64_t search_term_size) {
-    int64_t pos = 0;
-    int64_t search_pos = 0;
-    assert(search_term_size > 0);
-    while (pos < string_size) {
-        if (string[pos] == search_term[search_pos]) {
-            search_pos += 1;
-            if (search_pos >= search_term_size) {
-                return pos - search_pos;
-            }
-        } else {
-            search_pos = 0;
-        }
-        pos++;
-    }
-
-    return -1;
-}
 
 int generate_gitignore(lua_State* L) {
     luaL_argcheck(L, lua_gettop(L) == 0, 1, "generate_gitignore should not get any arguments");
