@@ -1,3 +1,4 @@
+#include "args.h"
 #include <assert.h>
 #include <stddef.h>
 #include <stdarg.h>
@@ -9,12 +10,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include "rnj.h"
 
-#if defined (__GNUC__) || defined (__clang__)
-#define NORETURN __attribute__ ((noreturn))
-#else
-#define NORETURN
-#endif
 
 void NORETURN error(lua_State* L, const char* fmt, ...) {
     const char* prefix = "FATAL ERROR [rnj] %s\n";
@@ -163,16 +160,12 @@ int generate_gitignore(lua_State* L) {
 }
 
 int main(int argc, char *argv[]) {
+    parse_args(argc, argv);
+
     lua_State* L = luaL_newstate();
     luaL_openlibs(L);
     lua_atpanic(L, lua_panic);
 
-    lua_createtable(L, argc, 0);
-    for (int i = 1; i < argc; i++) {
-        lua_pushstring(L, argv[i]);
-        lua_rawseti(L, -2, i);
-    }
-    lua_setglobal(L, "arg");
     lua_pushcfunction(L, generate_gitignore);
     lua_setglobal(L, "generate_gitignore");
 

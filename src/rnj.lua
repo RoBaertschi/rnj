@@ -1,28 +1,3 @@
-local arg_mode_none = 0
-local arg_mode_done = 99
-
-local arg_mode = arg_mode_done
-
-local function help_and_exit(error)
-	print("rnj.lua [args...]")
-	print("args:")
-	print("\t--help - print this help")
-	os.exit(error)
-end
-
-if 0 < #arg then
-	for _, a in ipairs(arg) do
-		if a == "--help" then
-			help_and_exit(0)
-		end
-
-		if arg_mode == arg_mode_done then
-			print('unexpected additonal argument after DIR "' .. a .. '"')
-			help_and_exit(1)
-		end
-	end
-end
-
 ---@type { [string]: string }
 vars = {}
 
@@ -60,12 +35,30 @@ function rule(name, options)
 	rules[name] = options
 end
 
----@type { output: string, rule: string, inputs: string[] }[]
+---@class build
+---@field output string
+---@field rule string
+---@field inputs (string | build)[]
+
+---@type build[]
 builds = {}
 
+---@param output string
+---@param rule string
+---@param ... string | build
+---@return build
 function build(output, rule, ...)
-	local arg = { ... }
-	builds[#builds + 1] = { output = output, rule = rule, inputs = arg }
+	local args = { ... }
+	local inputs = {}
+	for _, arg in ipairs(args) do
+		if type(arg) == "table" then
+			table.insert(inputs, arg.output)
+		else
+			table.insert(inputs, arg)
+		end
+	end
+	builds[#builds + 1] = { output = output, rule = rule, inputs = inputs }
+	return builds[#builds]
 end
 
 -- function generate_gitignore()

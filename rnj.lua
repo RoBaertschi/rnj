@@ -1,12 +1,20 @@
-var("cflags", "-O2 -Wall -Wextra -llua -lm -g")
+var("cflags", "-O2 -Wall -Wextra -g")
+var("ldflags", "-llua -lm")
 
 rule("cc", {
-	command = "gcc $cflags $in -o $out -MD -MF $out.d",
-	description = "gcc $in $out",
+	command = "gcc $cflags $in -c -o $out -MD -MF $out.d",
+	description = "gcc $in",
 	depfile = "$out.d",
 	deps = "gcc",
 })
 
-build("rnj", "cc", "src/rnj.c")
+rule("ld", {
+	command = "gcc $cflags $ldflags $in -o $out",
+	description = "ld $in",
+})
+
+local rnj_o = build("rnj.o", "cc", "src/rnj.c")
+local args_o = build("args.o", "cc", "src/args.c")
+build("rnj", "ld", rnj_o, args_o)
 
 generate_gitignore()
