@@ -112,43 +112,54 @@ int generate_gitignore(lua_State* L) {
     const char search_string[] = "# RNJ BEGIN\n";
     const char end_string[] = "# RNJ END\n";
 
-    int64_t search_pos = find_string(full_content, strlen(full_content), search_string, sizeof(search_string) / sizeof(char));
-    int64_t end_pos = find_string(full_content, strlen(full_content), end_string, sizeof(end_string) / sizeof(char));
-
-    for (int64_t i = 0; i < search_pos; i++) {
-        fputc(full_content[i], file);
-    }
+    
+    int64_t search_pos = strstr(full_content, search_string) - full_content;
+    int64_t end_pos = strstr(full_content, end_string) - full_content + sizeof(end_string) - 1;
 
     if (search_pos < 0) {
-        fwrite(search_string, sizeof(char), sizeof(search_string), file);
+        for (int64_t i = 0; i < strlen(full_content); i++) {
+            fputc(full_content[i], file);
+        }
+        end_pos = strlen(full_content);
+    } else {
+        if (end_pos < 0) {
+            end_pos = 0;
+            for (int64_t i = 0; i < search_pos; i++) {
+                end_pos++;
+                fputc(full_content[i], file);
+            }
+        } else {
+            for (int64_t i = 0; i < search_pos; i++) {
+                fputc(full_content[i], file);
+            }
+        }
     }
+    fprintf(file, "%s", search_string);
 
     // 2
     lua_pushnil(L);
     // 2 3
     while (lua_next(L, 1)) {
         // 4
-        lua_getfield(L, 3, "output");
+        lua_pushstring(L, "/");
         // 5
+        lua_getfield(L, 3, "output");
+        // 6
         lua_pushstring(L, "\n");
         // 4
-        lua_concat(L, 2);
+        lua_concat(L, 3);
         size_t output_size = 0;
         const char* output = lua_tolstring(L, -1, &output_size);
         lua_pop(L, 2);
         fwrite(output, sizeof(char), output_size, file);
     }
 
-    fprintf(file, "build.ninja\n.ninja_logs\n.ninja_deps\n");
+    fprintf(file, "build.ninja\n.ninja_log\n.ninja_deps\n");
 
-    if (end_pos < 0) {
-        fwrite(end_string, sizeof(char), sizeof(end_string), file);
-    }
+    fprintf(file, "%s", end_string);
 
-    if (end_pos > 0) {
-        for (size_t i = end_pos; i < strlen(full_content); i++) {
-            fputc(full_content[i], file);
-        }
+    for (size_t i = end_pos; i < strlen(full_content); i++) {
+        fputc(full_content[i], file);
     }
 
     fclose(file);
