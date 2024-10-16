@@ -3,7 +3,7 @@ vars = {}
 
 ---Adds a new variable that can be used in ninja using the $variablename syntax
 ---@param name string
----@param default string
+---@param default string?
 function var(name, default)
 	vars[name] = default or ""
 end
@@ -52,6 +52,24 @@ function build(output, rule, ...)
 	local inputs = {}
 	for _, arg in ipairs(args) do
 		if type(arg) == "table" then
+			table.insert(inputs, escape(arg.output))
+		else
+			table.insert(inputs, escape(arg))
+		end
+	end
+	builds[#builds + 1] = { output = escape(output), rule = rule, inputs = inputs }
+	return builds[#builds]
+end
+
+---@param output string
+---@param rule string
+---@param ... string | build
+---@return build
+function build_no_escape(output, rule, ...)
+	local args = { ... }
+	local inputs = {}
+	for _, arg in ipairs(args) do
+		if type(arg) == "table" then
 			table.insert(inputs, arg.output)
 		else
 			table.insert(inputs, arg)
@@ -61,19 +79,8 @@ function build(output, rule, ...)
 	return builds[#builds]
 end
 
--- function generate_gitignore()
--- 	local file, err = io.open(".gitignore", "w")
--- 	if err ~= nil or file == nil then
--- 		error('could not create or open ".gitignore", error: ' .. err)
--- 	end
---
--- 	for _, b in ipairs(builds) do
--- 		file:write(b.output .. "\n")
--- 	end
--- 	file:write("build.ninja\n.ninja_logs\n.ninja_deps\n")
---
--- 	file:close()
--- end
+---@type nil|string
+builddir = nil
 
 file, err = io.open("rnj.lua", "r")
 

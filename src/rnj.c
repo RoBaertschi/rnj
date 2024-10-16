@@ -150,6 +150,36 @@ int generate_gitignore(lua_State* L) {
     return 0;
 }
 
+int escape(lua_State* L) {
+    luaL_checktype(L, 1, LUA_TSTRING);
+
+    size_t string_size = 0;
+    const char* string = lua_tolstring(L, 1, &string_size);
+    lua_pushstring(L, "");
+
+    for (size_t i = 0; i < string_size; i++) {
+        char c = string[i];
+        char str[2] = {c, '\0'};
+
+        switch (c) {
+        case '$':
+            lua_pushstring(L, "$$");
+            break;
+        case ' ':
+            lua_pushstring(L, "$ ");
+            break;
+        case ':':
+            lua_pushstring(L, "$:");
+            break;
+        default:
+            lua_pushstring(L, str);
+        }
+        lua_concat(L, 2);
+    }
+
+    return 1;
+}
+
 int main(int argc, char *argv[]) {
     parse_args(argc, argv);
 
@@ -159,6 +189,8 @@ int main(int argc, char *argv[]) {
 
     lua_pushcfunction(L, generate_gitignore);
     lua_setglobal(L, "generate_gitignore");
+    lua_pushcfunction(L, escape);
+    lua_setglobal(L, "escape");
 
     call_file(L, "src/rnj.lua");
 

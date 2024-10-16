@@ -1,6 +1,8 @@
+.cache
 # RNJ BEGIN
 /rnj.o
 /args.o
+/rdir.o
 /rnj
 build.ninja
 .ninja_log
