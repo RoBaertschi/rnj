@@ -1,4 +1,5 @@
 #include "args.h"
+#include "rdir.h"
 #include <assert.h>
 #include <stddef.h>
 #include <stdarg.h>
@@ -180,12 +181,77 @@ int escape(lua_State* L) {
     return 1;
 }
 
+int rnj_os_mkdir(lua_State* L) {
+    const char* path = luaL_checkstring(L, 1);
+
+    const char* err;
+    if((err = rdir_mdkir(path)) != NULL) {
+        luaL_error(L, "could not create path %s because of %s", path, err);
+    }
+
+    return 0;
+}
+
+int rnj_os_unlink(lua_State* L) {
+    const char* path = luaL_checkstring(L, 1);
+
+    const char* err;
+    if((err = rdir_unlink(path)) != NULL) {
+        luaL_error(L, "could not remove directory %s because of %s", path, err);
+    }
+
+    return 0;
+}
+
+int rnj_os_sep(lua_State* L) {
+    const char sep[2] = { rdir_path_seperator(), '\0' };
+    lua_pushstring(L, sep);
+
+    return 1;
+}
+
+int get_builddir(lua_State* L) {
+    lua_gettable(L, LUA_REGISTRYINDEX);
+    lua_getfield(L, -1, RNJ_REGISTRY_TABLE);
+    lua_getfield(L, -1, RNJ_REGISTRY_BUILDDIR);
+
+    return 1;
+}
+
+static const luaL_Reg rnj_oslib[] = {
+    {"mkdir", rnj_os_mkdir},
+    {"unlink", rnj_os_unlink},
+    {"sep", rnj_os_sep},
+    {NULL, NULL},
+};
+
+int open_rnj(lua_State* L) {
+    lua_createtable(L, 0, 1);
+    luaL_newlib(L, rnj_oslib);
+    lua_setfield(L, -2, "os");
+    return 1;
+}
+
+int setup_registry(lua_State* L) {
+    lua_gettable(L, LUA_REGISTRYINDEX); // 1 + top_args
+    lua_createtable(L, 0, 0); // 2 + top_args
+    lua_setfield(L, 1, RNJ_REGISTRY_TABLE); // registry = { rnj_state = { builddir = nil } }
+
+    return 0;
+}
+
 int main(int argc, char *argv[]) {
     parse_args(argc, argv);
 
     lua_State* L = luaL_newstate();
     luaL_openlibs(L);
     lua_atpanic(L, lua_panic);
+
+    luaL_requiref(L, "rnj", open_rnj, 1);
+    lua_pop(L, 1);
+
+    lua_pushcfunction(L, setup_registry);
+    lua_call(L, 0, 0);
 
     lua_pushcfunction(L, generate_gitignore);
     lua_setglobal(L, "generate_gitignore");

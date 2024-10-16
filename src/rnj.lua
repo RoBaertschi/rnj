@@ -53,12 +53,14 @@ function build(output, rule, ...)
 	for _, arg in ipairs(args) do
 		if type(arg) == "table" then
 			table.insert(inputs, escape(arg.output))
-		else
+		elseif type(arg) == "string" then
 			table.insert(inputs, escape(arg))
+		else
+			error("unknown build input " .. arg)
 		end
 	end
-	builds[#builds + 1] = { output = escape(output), rule = rule, inputs = inputs }
-	return builds[#builds]
+
+	return build_no_escape(output, rule, table.unpack(inputs))
 end
 
 ---@param output string
@@ -71,16 +73,15 @@ function build_no_escape(output, rule, ...)
 	for _, arg in ipairs(args) do
 		if type(arg) == "table" then
 			table.insert(inputs, arg.output)
-		else
+		elseif type(arg) == "string" then
 			table.insert(inputs, arg)
+		else
+			error("unknown build input " .. arg)
 		end
 	end
 	builds[#builds + 1] = { output = output, rule = rule, inputs = inputs }
 	return builds[#builds]
 end
-
----@type nil|string
-builddir = nil
 
 file, err = io.open("rnj.lua", "r")
 

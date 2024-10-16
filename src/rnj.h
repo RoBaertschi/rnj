@@ -7,4 +7,7 @@
 #define NORETURN
 #endif
 
+#define RNJ_REGISTRY_TABLE "rnj_state"
+#define RNJ_REGISTRY_BUILDDIR "builddir"
+
 #endif // RNJ_RNJ_H_
