@@ -116,7 +116,7 @@ realpath = rnj.os.realpath(".") .. rnj.os.sep()
 ---@param build build | string
 local function build_output_string(build)
 	if type(build) == "table" then
-		return builddir .. build.output
+		return build.output
 	elseif type(build) == "string" then
 		return rnj.os.realpath(build)
 	else

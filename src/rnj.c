@@ -139,7 +139,7 @@ int rnj_internal_generate_gitignore(lua_State* L) {
         lua_getfield(L, 3, "output");
         // 5
         lua_pushstring(L, "\n");
-        // 4
+        // 3
         lua_concat(L, 2);
         size_t output_size = 0;
         const char* output = lua_tolstring(L, -1, &output_size);
