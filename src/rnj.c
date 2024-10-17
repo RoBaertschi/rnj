@@ -318,8 +318,9 @@ int main(int argc, char *argv[]) {
     lua_pushcfunction(L, setup_registry);
     lua_call(L, 0, 0);
 
-    lua_pushcfunction(L, enable_generate_gitignore);
-    lua_setglobal(L, "generate_gitignore");
+    // FIXME: Fix gitignore generation
+    /*lua_pushcfunction(L, enable_generate_gitignore);*/
+    /*lua_setglobal(L, "generate_gitignore");*/
     lua_pushcfunction(L, escape);
     lua_setglobal(L, "escape");
 

@@ -170,7 +170,8 @@ build_ninja_file:write(build_ninja)
 build_ninja_file:close()
 --#endregion
 
-if rnj.internal.is_generate_gitignore() then
-	print("generation .gitignore")
-	rnj.internal.generate_gitignore()
-end
+-- FIXME: See src/rnj.c
+-- if rnj.internal.is_generate_gitignore() then
+-- 	print("generation .gitignore")
+-- 	rnj.internal.generate_gitignore()
+-- end
