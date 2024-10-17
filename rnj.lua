@@ -1,4 +1,4 @@
-rnj.builddir("../builddir")
+rnj.builddir("builddir")
 
 var("cflags", "-O2 -Wall -Wextra -g -I /usr/include/lua5.4/")
 var("ldflags", "-llua5.4 -lm -lc")

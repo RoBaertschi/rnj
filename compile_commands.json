@@ -1,26 +1,26 @@
 [
   {
-    "directory": "/home/robin/dev/lua/rnj",
-    "command": "gcc -O2 -Wall -Wextra -g -I /usr/include/lua5.4/ src/rnj.c -c -o rnj.o -MD -MF rnj.o.d",
-    "file": "src/rnj.c",
-    "output": "rnj.o"
+    "directory": "/home/robin/dev/lua/rnj/builddir",
+    "command": "gcc -O2 -Wall -Wextra -g -I /usr/include/lua5.4/ /home/robin/dev/lua/rnj/src/rnj.c -c -o /home/robin/dev/lua/rnj/builddir/rnj.o -MD -MF /home/robin/dev/lua/rnj/builddir/rnj.o.d",
+    "file": "/home/robin/dev/lua/rnj/src/rnj.c",
+    "output": "/home/robin/dev/lua/rnj/builddir/rnj.o"
   },
   {
-    "directory": "/home/robin/dev/lua/rnj",
-    "command": "gcc -O2 -Wall -Wextra -g -I /usr/include/lua5.4/ src/args.c -c -o args.o -MD -MF args.o.d",
-    "file": "src/args.c",
-    "output": "args.o"
+    "directory": "/home/robin/dev/lua/rnj/builddir",
+    "command": "gcc -O2 -Wall -Wextra -g -I /usr/include/lua5.4/ /home/robin/dev/lua/rnj/src/args.c -c -o /home/robin/dev/lua/rnj/builddir/args.o -MD -MF /home/robin/dev/lua/rnj/builddir/args.o.d",
+    "file": "/home/robin/dev/lua/rnj/src/args.c",
+    "output": "/home/robin/dev/lua/rnj/builddir/args.o"
   },
   {
-    "directory": "/home/robin/dev/lua/rnj",
-    "command": "gcc -O2 -Wall -Wextra -g -I /usr/include/lua5.4/ src/rdir.c -c -o rdir.o -MD -MF rdir.o.d",
-    "file": "src/rdir.c",
-    "output": "rdir.o"
+    "directory": "/home/robin/dev/lua/rnj/builddir",
+    "command": "gcc -O2 -Wall -Wextra -g -I /usr/include/lua5.4/ /home/robin/dev/lua/rnj/src/rdir.c -c -o /home/robin/dev/lua/rnj/builddir/rdir.o -MD -MF /home/robin/dev/lua/rnj/builddir/rdir.o.d",
+    "file": "/home/robin/dev/lua/rnj/src/rdir.c",
+    "output": "/home/robin/dev/lua/rnj/builddir/rdir.o"
   },
   {
-    "directory": "/home/robin/dev/lua/rnj",
-    "command": "gcc -o rnj rnj.o args.o rdir.o -llua5.4 -lm -lc",
-    "file": "rnj.o",
-    "output": "rnj"
+    "directory": "/home/robin/dev/lua/rnj/builddir",
+    "command": "gcc -o /home/robin/dev/lua/rnj/builddir/rnj /home/robin/dev/lua/rnj/builddir/rnj.o /home/robin/dev/lua/rnj/builddir/args.o /home/robin/dev/lua/rnj/builddir/rdir.o -llua5.4 -lm -lc",
+    "file": "/home/robin/dev/lua/rnj/builddir/rnj.o",
+    "output": "/home/robin/dev/lua/rnj/builddir/rnj"
   }
 ]

@@ -13,6 +13,8 @@ function generate_gitignore() end
 ---Rnj functions, that are not specific to the build system and more of utilities.
 rnj = {
 	os = {},
+	---@private
+	internal = {},
 }
 
 ---Retruns the current builddir or nil
@@ -43,3 +45,8 @@ function rnj.os.dir_exists(path) end
 ---@param path string
 ---@return string
 function rnj.os.realpath(path) end
+
+---@return boolean
+function rnj.internal.is_generate_gitignore() end
+
+function rnj.internal.generate_gitignore() end

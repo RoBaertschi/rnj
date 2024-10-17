@@ -99,29 +99,43 @@ if not success then
 end
 
 local builddir = rnj.get_builddir()
-if builddir and not rnj.os.dir_exists(builddir) then
-	rnj.builddir(builddir .. rnj.os.sep())
+
+if builddir ~= nil and not rnj.os.dir_exists(builddir) then
 	rnj.os.mkdir(builddir)
 end
 
-if not builddir then
+if builddir == nil then
 	rnj.builddir(".")
+	builddir = rnj.get_builddir()
 end
 
 ---@as string
-builddir = rnj.get_builddir() .. rnj.os.sep()
-real_path = rnj.os.realpath(".") .. rnj.os.sep()
+builddir = builddir .. rnj.os.sep()
+realpath = rnj.os.realpath(".") .. rnj.os.sep()
 
 ---@param build build | string
 local function build_output_string(build)
 	if type(build) == "table" then
 		return builddir .. build.output
 	elseif type(build) == "string" then
-		return builddir .. build
+		return rnj.os.realpath(build)
 	else
 		error("unkonwn build output")
 	end
 end
+
+for _, b in ipairs(builds) do
+	local inputs = {}
+	for _, input in ipairs(b.inputs) do
+		table.insert(inputs, build_output_string(input))
+	end
+	b.inputs = inputs
+	b.output = builddir .. b.output
+end
+
+-- Inputs and outputs after here are absolute
+
+--#region Ninja Build File generation
 
 -- Ninja 4 spaces
 local t = "    "
@@ -142,9 +156,9 @@ for rule, options in pairs(rules) do
 end
 
 for _, b in ipairs(builds) do
-	build_ninja = build_ninja .. "build " .. build_output_string(b) .. ": " .. b.rule
+	build_ninja = build_ninja .. "build " .. b.output .. ": " .. b.rule
 	for _, input in ipairs(b.inputs) do
-		build_ninja = build_ninja .. " " .. build_output_string(input)
+		build_ninja = build_ninja .. " " .. input
 	end
 	build_ninja = build_ninja .. "\n"
 end
@@ -154,3 +168,9 @@ print(build_ninja)
 build_ninja_file = io.open(builddir .. "build.ninja", "w+")
 build_ninja_file:write(build_ninja)
 build_ninja_file:close()
+--#endregion
+
+if rnj.internal.is_generate_gitignore() then
+	print("generation .gitignore")
+	rnj.internal.generate_gitignore()
+end

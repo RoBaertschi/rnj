@@ -9,5 +9,6 @@
 
 #define RNJ_REGISTRY_TABLE "rnj_state"
 #define RNJ_REGISTRY_BUILDDIR "builddir"
+#define RNJ_REGISTRY_GENERATE_GITIGNORE "generate_gitignore"
 
 #endif // RNJ_RNJ_H_

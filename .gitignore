@@ -1,9 +1,9 @@
 .cache
 # RNJ BEGIN
-/rnj.o
-/args.o
-/rdir.o
-/rnj
+/home/robin/dev/lua/rnj/builddir/rnj.o
+/home/robin/dev/lua/rnj/builddir/args.o
+/home/robin/dev/lua/rnj/builddir/rdir.o
+/home/robin/dev/lua/rnj/builddir/rnj
 
 .ninja_log
 .ninja_deps

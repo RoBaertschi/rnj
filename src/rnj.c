@@ -72,8 +72,22 @@ char* fall(FILE* file) {
     return buffer;
 }
 
+int enable_generate_gitignore(lua_State* L) {
+    luaL_getsubtable(L, LUA_REGISTRYINDEX, RNJ_REGISTRY_TABLE);
+    lua_pushboolean(L, true);
+    lua_setfield(L, -2, RNJ_REGISTRY_GENERATE_GITIGNORE);
 
-int generate_gitignore(lua_State* L) {
+    return 0;
+}
+
+int rnj_internal_is_generate_gitignore(lua_State* L) {
+    luaL_getsubtable(L, LUA_REGISTRYINDEX, RNJ_REGISTRY_TABLE);
+    lua_getfield(L, -1, RNJ_REGISTRY_GENERATE_GITIGNORE);
+
+    return 1;
+}
+
+int rnj_internal_generate_gitignore(lua_State* L) {
     luaL_argcheck(L, lua_gettop(L) == 0, 1, "generate_gitignore should not get any arguments");
     lua_getglobal(L, "builds");
     luaL_checktype(L, 1, LUA_TTABLE);
@@ -122,13 +136,11 @@ int generate_gitignore(lua_State* L) {
     // 2 3
     while (lua_next(L, 1)) {
         // 4
-        lua_pushstring(L, "/");
-        // 5
         lua_getfield(L, 3, "output");
-        // 6
+        // 5
         lua_pushstring(L, "\n");
         // 4
-        lua_concat(L, 3);
+        lua_concat(L, 2);
         size_t output_size = 0;
         const char* output = lua_tolstring(L, -1, &output_size);
         lua_pop(L, 2);
@@ -219,13 +231,24 @@ int rnj_os_dir_exists(lua_State* L) {
 
 int rnj_get_builddir(lua_State* L) {
     luaL_getsubtable(L, LUA_REGISTRYINDEX, RNJ_REGISTRY_TABLE);
-    lua_getfield(L, -1, RNJ_REGISTRY_BUILDDIR);
+    lua_getfield(L, 1, RNJ_REGISTRY_BUILDDIR);
     return 1;
 }
 
 int rnj_builddir(lua_State* L) {
     const char* path = luaL_checkstring(L, 1);
     char* realpath = rdir_realpath(path);
+    if (realpath == NULL) {
+        const char* result = rdir_mdkir(path);
+        if (result != NULL) {
+            luaL_error(L, "could not create \"%s\" because: %s", path, result);
+        }
+        realpath = rdir_realpath(path);
+        if (result != NULL) {
+            luaL_error(L, "could not get absolute path for \"%s\"", path);
+        }
+    }
+    /*printf("path: %s, realpath: %s, error: %s\n", path, realpath, strerror(errno));*/
     luaL_getsubtable(L, LUA_REGISTRYINDEX, RNJ_REGISTRY_TABLE);
     lua_pushstring(L, realpath);
     free(realpath);
@@ -256,10 +279,18 @@ static const luaL_Reg rnj_oslib[] = {
     {NULL, NULL},
 };
 
+static const luaL_Reg rnj_internallib[] = {
+    {"generate_gitignore", rnj_internal_generate_gitignore},
+    {"is_generate_gitignore", rnj_internal_is_generate_gitignore},
+    {NULL, NULL},
+};
+
 int open_rnj(lua_State* L) {
     luaL_newlib(L, rnjlib);
     luaL_newlib(L, rnj_oslib);
     lua_setfield(L, -2, "os");
+    luaL_newlib(L, rnj_internallib);
+    lua_setfield(L, -2, "internal");
     return 1;
 }
 
@@ -287,7 +318,7 @@ int main(int argc, char *argv[]) {
     lua_pushcfunction(L, setup_registry);
     lua_call(L, 0, 0);
 
-    lua_pushcfunction(L, generate_gitignore);
+    lua_pushcfunction(L, enable_generate_gitignore);
     lua_setglobal(L, "generate_gitignore");
     lua_pushcfunction(L, escape);
     lua_setglobal(L, "escape");
