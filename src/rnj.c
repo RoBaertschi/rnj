@@ -135,7 +135,7 @@ int generate_gitignore(lua_State* L) {
         fwrite(output, sizeof(char), output_size, file);
     }
 
-    fprintf(file, "build.ninja\n.ninja_log\n.ninja_deps\n");
+    fprintf(file, "\n.ninja_log\n.ninja_deps\n");
 
     fprintf(file, "%s", end_string);
 
@@ -210,23 +210,54 @@ int rnj_os_sep(lua_State* L) {
     return 1;
 }
 
-int get_builddir(lua_State* L) {
-    lua_gettable(L, LUA_REGISTRYINDEX);
-    lua_getfield(L, -1, RNJ_REGISTRY_TABLE);
-    lua_getfield(L, -1, RNJ_REGISTRY_BUILDDIR);
+int rnj_os_dir_exists(lua_State* L) {
+    const char* path = luaL_checkstring(L, 1);
+    lua_pushboolean(L, rdir_exists(path));
 
     return 1;
 }
+
+int rnj_get_builddir(lua_State* L) {
+    luaL_getsubtable(L, LUA_REGISTRYINDEX, RNJ_REGISTRY_TABLE);
+    lua_getfield(L, -1, RNJ_REGISTRY_BUILDDIR);
+    return 1;
+}
+
+int rnj_builddir(lua_State* L) {
+    const char* path = luaL_checkstring(L, 1);
+    char* realpath = rdir_realpath(path);
+    luaL_getsubtable(L, LUA_REGISTRYINDEX, RNJ_REGISTRY_TABLE);
+    lua_pushstring(L, realpath);
+    free(realpath);
+    lua_setfield(L, -2, RNJ_REGISTRY_BUILDDIR);
+    return 0;
+}
+
+int rnj_os_realpath(lua_State* L) {
+    const char* path = luaL_checkstring(L, 1);
+    char* string = rdir_realpath(path);
+    lua_pushstring(L, string);
+    free(string);
+    return 1;
+}
+
+static const luaL_Reg rnjlib[] = {
+    {"get_builddir", rnj_get_builddir},
+    {"builddir", rnj_builddir},
+    {NULL, NULL},
+};
 
 static const luaL_Reg rnj_oslib[] = {
     {"mkdir", rnj_os_mkdir},
     {"unlink", rnj_os_unlink},
     {"sep", rnj_os_sep},
+    {"dir_exists", rnj_os_dir_exists},
+    {"realpath", rnj_os_realpath},
     {NULL, NULL},
 };
 
 int open_rnj(lua_State* L) {
-    lua_createtable(L, 0, 1);
+    luaL_newlib(L, rnjlib);
     luaL_newlib(L, rnj_oslib);
     lua_setfield(L, -2, "os");
     return 1;
@@ -241,7 +272,10 @@ int setup_registry(lua_State* L) {
 }
 
 int main(int argc, char *argv[]) {
-    parse_args(argc, argv);
+    rnj_args args = parse_args(argc, argv);
+    if (args.builddir != NULL) {
+        
+    }
 
     lua_State* L = luaL_newstate();
     luaL_openlibs(L);

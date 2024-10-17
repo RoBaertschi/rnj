@@ -1,0 +1,13 @@
+ninja_required_version = 1.3
+ldflags = -llua5.4 -lm -lc
+cflags = -O2 -Wall -Wextra -g -I /usr/include/lua5.4/
+rule cc
+    command = gcc $cflags $in -c -o $out -MD -MF $out.d
+    depfile = $out.d
+    deps = gcc
+rule ld
+    command = gcc -o $out $in $ldflags
+build rnj.o: cc /home/robin/dev/lua/rnj/src/rnj.c
+build args.o: cc /home/robin/dev/lua/rnj/src/args.c
+build rdir.o: cc /home/robin/dev/lua/rnj/src/rdir.c
+build rnj: ld rnj.o args.o rdir.o

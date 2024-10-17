@@ -33,6 +33,13 @@ const char* rdir_unlink(const char* dir);
 
 char rdir_path_seperator(void);
 
+// This returns true, if the directory exists, if it does not or an error ocurred, it will return false.
+bool rdir_exists(const char* dir);
+
+// Allocates using malloc() so you shoud free with free()
+// TODO: Returns NULL on error. Currently no way to get error. On posix errno is set.
+char* rdir_realpath(const char* dir);
+
 void rdir_destroy_dir(struct rdir_dir* dir);
 void rdir_destroy_entry(struct rdir_entry* entry);
 
@@ -139,6 +146,25 @@ const char* rdir_unlink(const char* dir) {
 char rdir_path_seperator(void) {
 #ifdef RDIR_POSIX
     return '/';
+#endif // RDIR_POSIX
+}
+
+bool rdir_exists(const char* dir) {
+#ifdef RDIR_POSIX
+    errno = 0;
+    DIR* dirdesc = opendir(dir);
+    if (dirdesc) {
+        closedir(dirdesc);
+        return true;
+    } else {
+        return false;
+    }
+#endif // RDIR_POSIX
+}
+
+char* rdir_realpath(const char* dir) {
+#ifdef RDIR_POSIX
+    return realpath(dir, NULL);
 #endif // RDIR_POSIX
 }
 

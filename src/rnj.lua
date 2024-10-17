@@ -52,7 +52,8 @@ function build(output, rule, ...)
 	local inputs = {}
 	for _, arg in ipairs(args) do
 		if type(arg) == "table" then
-			table.insert(inputs, escape(arg.output))
+			arg.output = escape(arg.output)
+			table.insert(inputs, arg)
 		elseif type(arg) == "string" then
 			table.insert(inputs, escape(arg))
 		else
@@ -69,17 +70,7 @@ end
 ---@return build
 function build_no_escape(output, rule, ...)
 	local args = { ... }
-	local inputs = {}
-	for _, arg in ipairs(args) do
-		if type(arg) == "table" then
-			table.insert(inputs, arg.output)
-		elseif type(arg) == "string" then
-			table.insert(inputs, arg)
-		else
-			error("unknown build input " .. arg)
-		end
-	end
-	builds[#builds + 1] = { output = output, rule = rule, inputs = inputs }
+	builds[#builds + 1] = { output = output, rule = rule, inputs = args }
 	return builds[#builds]
 end
 
@@ -91,7 +82,7 @@ end
 
 file:close()
 
-local rnj, err = loadfile("rnj.lua")
+local rnj_config, err = loadfile("rnj.lua")
 
 if err ~= nil then
 	error('could not execute lua file "rnj.lua", error: ' .. err)
@@ -101,13 +92,38 @@ local success
 
 -- Yes it matches you stupid
 ---@diagnostic disable-next-line: param-type-mismatch
-success, err = pcall(rnj)
+success, err = pcall(rnj_config)
 
 if not success then
 	error('could not lua file "rnj.lua", error: ' .. err)
 end
 
--- Ninja Tab
+local builddir = rnj.get_builddir()
+if builddir and not rnj.os.dir_exists(builddir) then
+	rnj.builddir(builddir .. rnj.os.sep())
+	rnj.os.mkdir(builddir)
+end
+
+if not builddir then
+	rnj.builddir(".")
+end
+
+---@as string
+builddir = rnj.get_builddir() .. rnj.os.sep()
+real_path = rnj.os.realpath(".") .. rnj.os.sep()
+
+---@param build build | string
+local function build_output_string(build)
+	if type(build) == "table" then
+		return builddir .. build.output
+	elseif type(build) == "string" then
+		return builddir .. build
+	else
+		error("unkonwn build output")
+	end
+end
+
+-- Ninja 4 spaces
 local t = "    "
 local build_ninja = "ninja_required_version = 1.3\n"
 for variable, default in pairs(vars) do
@@ -126,15 +142,15 @@ for rule, options in pairs(rules) do
 end
 
 for _, b in ipairs(builds) do
-	build_ninja = build_ninja .. "build " .. b.output .. ": " .. b.rule
+	build_ninja = build_ninja .. "build " .. build_output_string(b) .. ": " .. b.rule
 	for _, input in ipairs(b.inputs) do
-		build_ninja = build_ninja .. " " .. input
+		build_ninja = build_ninja .. " " .. build_output_string(input)
 	end
 	build_ninja = build_ninja .. "\n"
 end
 
 print(build_ninja)
 
-build_ninja_file = io.open("build.ninja", "w+")
+build_ninja_file = io.open(builddir .. "build.ninja", "w+")
 build_ninja_file:write(build_ninja)
 build_ninja_file:close()

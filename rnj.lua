@@ -1,7 +1,7 @@
-builddir = "build"
+rnj.builddir("../builddir")
 
-var("cflags", "-O2 -Wall -Wextra -g")
-var("ldflags", "-llua -lm")
+var("cflags", "-O2 -Wall -Wextra -g -I /usr/include/lua5.4/")
+var("ldflags", "-llua5.4 -lm -lc")
 
 rule("cc", {
 	command = "gcc $cflags $in -c -o $out -MD -MF $out.d",
@@ -11,7 +11,7 @@ rule("cc", {
 })
 
 rule("ld", {
-	command = "gcc $cflags $ldflags $in -o $out",
+	command = "gcc -o $out $in $ldflags",
 	description = "ld $in",
 })
 

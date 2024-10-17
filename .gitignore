@@ -4,7 +4,7 @@
 /args.o
 /rdir.o
 /rnj
-build.ninja
+
 .ninja_log
 .ninja_deps
 # RNJ END

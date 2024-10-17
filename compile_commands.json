@@ -1,25 +1,25 @@
 [
   {
     "directory": "/home/robin/dev/lua/rnj",
-    "command": "gcc -O2 -Wall -Wextra -g src/rnj.c -c -o rnj.o -MD -MF rnj.o.d",
+    "command": "gcc -O2 -Wall -Wextra -g -I /usr/include/lua5.4/ src/rnj.c -c -o rnj.o -MD -MF rnj.o.d",
     "file": "src/rnj.c",
     "output": "rnj.o"
   },
   {
     "directory": "/home/robin/dev/lua/rnj",
-    "command": "gcc -O2 -Wall -Wextra -g src/args.c -c -o args.o -MD -MF args.o.d",
+    "command": "gcc -O2 -Wall -Wextra -g -I /usr/include/lua5.4/ src/args.c -c -o args.o -MD -MF args.o.d",
     "file": "src/args.c",
     "output": "args.o"
   },
   {
     "directory": "/home/robin/dev/lua/rnj",
-    "command": "gcc -O2 -Wall -Wextra -g src/rdir.c -c -o rdir.o -MD -MF rdir.o.d",
+    "command": "gcc -O2 -Wall -Wextra -g -I /usr/include/lua5.4/ src/rdir.c -c -o rdir.o -MD -MF rdir.o.d",
     "file": "src/rdir.c",
     "output": "rdir.o"
   },
   {
     "directory": "/home/robin/dev/lua/rnj",
-    "command": "gcc -O2 -Wall -Wextra -g -llua -lm rnj.o args.o rdir.o -o rnj",
+    "command": "gcc -o rnj rnj.o args.o rdir.o -llua5.4 -lm -lc",
     "file": "rnj.o",
     "output": "rnj"
   }
